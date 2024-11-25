@@ -20,10 +20,10 @@
       <h1 class="text-3xl font-bold mb-8 text-center">参考文献フォーマッタくん</h1>
 
       <!-- 参考文献のタイプ選択 -->
-      <div class="flex space-x-4 mb-6 justify-between">
+      <div class="flex  mb-6 flex-col md:flex-row md:justify-between md:space-x-4">
         <button v-for="(type, index) in referenceTypes" :key="index" @click="currentType = type"
           :class="{ 'bg-blue-500 text-white': currentType === type, 'bg-gray-200': currentType !== type }"
-          class="p-2 rounded-lg w-full">
+          class="p-2 rounded-lg w-full my-2 md:my-0">
           {{ type }}
         </button>
       </div>
@@ -45,7 +45,7 @@
           </div>
           <div class="mb-4">
             <label class="block text-sm font-medium">出版年</label>
-            <input v-model="year" type="number" class="border p-2 w-full rounded-lg" />
+            <input v-model="year" type="text" class="border p-2 w-full rounded-lg" placeholder="例) 2019" />
           </div>
         </form>
       </div>
@@ -67,19 +67,19 @@
           </div>
           <div class="mb-4">
             <label class="block text-sm font-medium">巻</label>
-            <input v-model="volume" type="text" class="border p-2 w-full rounded-lg" />
+            <input v-model="volume" type="text" class="border p-2 w-full rounded-lg" placeholder="例) 42" />
           </div>
           <div class="mb-4">
             <label class="block text-sm font-medium">号</label>
-            <input v-model="no" type="text" class="border p-2 w-full rounded-lg" />
+            <input v-model="no" type="text" class="border p-2 w-full rounded-lg" placeholder="例) 3" />
           </div>
           <div class="mb-4">
             <label class="block text-sm font-medium">発行年</label>
-            <input v-model="year" type="number" class="border p-2 w-full rounded-lg" />
+            <input v-model="year" type="text" class="border p-2 w-full rounded-lg" placeholder="例) 2019" />
           </div>
           <div class="mb-4">
             <label class="block text-sm font-medium">ページ範囲</label>
-            <input v-model="pages" type="text" class="border p-2 w-full rounded-lg" />
+            <input v-model="pages" type="text" class="border p-2 w-full rounded-lg" placeholder="例) 55-67" />
           </div>
         </form>
       </div>
@@ -101,15 +101,15 @@
           </div>
           <div class="mb-4">
             <label class="block text-sm font-medium">更新日</label>
-            <input v-model="updateDate" type="text" class="border p-2 w-full rounded-lg" />
+            <input v-model="updateDate" type="text" class="border p-2 w-full rounded-lg" placeholder="例) 2024" />
           </div>
           <div class="mb-4">
             <label class="block text-sm font-medium">URL</label>
-            <input v-model="url" type="url" class="border p-2 w-full rounded-lg" />
+            <input v-model="url" type="url" class="border p-2 w-full rounded-lg" placeholder="例) https://example.com" />
           </div>
           <div class="mb-4">
             <label class="block text-sm font-medium">閲覧日</label>
-            <input v-model="accessedDate" type="text" placeholder="ex) 2024-08-19"
+            <input v-model="accessedDate" type="text" placeholder="例) 2024-08-19"
               class="border p-2 w-full rounded-lg" />
           </div>
         </form>
@@ -134,7 +134,8 @@
       <!-- フォーマット結果表示 -->
       <div v-if="formattedCitation" class="mt-6">
         <h2 class="text-xl font-bold">Result:</h2>
-        <p>{{ formattedCitation }}</p>
+        <textarea class="w-full border rounded-lg p-2 resize-none" readonly="readonly"
+          onclick="this.select()">{{ formattedCitation }}</textarea>
       </div>
     </div>
   </main>
@@ -170,15 +171,21 @@ const formattedCitation = ref('')
 const formatCitation = () => {
   if (citationStyle.value === 'apa') {
     if (currentType.value === '図書') {
-      formattedCitation.value = `${author.value}(${year.value}) . 『${bookTitle.value}』. ${publisher.value}.`
+      formattedCitation.value = `${author.value}(${year.value}) . 『${bookTitle.value}』. ${publisher.value} .`
     } else if (currentType.value === '雑誌論文') {
       formattedCitation.value = `${author.value}(${year.value}) . 「${paperTitle.value}」 『${journalName.value}』 ${volume.value}巻 , ${no.value}号 , pp.${pages.value} .`
     } else if (currentType.value === 'ウェブサイト') {
-      formattedCitation.value = `${author.value}(${year.value}) . 「${webPageTitle.value}」 . ${websiteName.value} . ${url.value} , (参照：${accessedDate.value}) .`
+      formattedCitation.value = `${author.value}(${updateDate.value}) . 「${webPageTitle.value}」 . ${websiteName.value} . ${url.value} , (参照 ${accessedDate.value}) .`
     }
   } else if (citationStyle.value === 'sist') {
     // SISTスタイル処理
-    // ...
+    if (currentType.value === '図書') {
+      formattedCitation.value = `${author.value} . ${bookTitle.value} . ${publisher.value} . ${year.value}`
+    } else if (currentType.value === '雑誌論文') {
+      formattedCitation.value = `${author.value} . ${paperTitle.value} . ${journalName.value} . ${year.value} , vol.${volume.value} , no.${no.value} , p.${pages.value} .`
+    } else if (currentType.value === 'ウェブサイト') {
+      formattedCitation.value = `${author.value} . “${webPageTitle.value}” . ${websiteName.value} . ${updateDate.value} . ${url.value} , (参照 ${accessedDate.value}) .`
+    }
   }
 }
 </script>
