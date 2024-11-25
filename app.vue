@@ -1,5 +1,7 @@
 <template>
 
+  <Analytics />
+
   <!-- GitHub Corners -->
   <a href="https://github.com/zawataku/References_Generator" class="github-corner" aria-label="View source on GitHub">
     <svg width="80" height="80" viewBox="0 0 250 250"
@@ -143,6 +145,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { Analytics } from '@vercel/analytics/nuxt';
 
 const referenceTypes = ['図書', '雑誌論文', 'ウェブサイト']
 const currentType = ref('図書') // 初期状態は図書
