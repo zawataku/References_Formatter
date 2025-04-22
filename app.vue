@@ -34,6 +34,15 @@
       <div v-if="currentType === '図書'">
         <form @submit.prevent="formatCitation">
           <div class="mb-4">
+            <label class="block text-sm font-medium">ISBN-13（ハイフンは自動で削除されます）</label>
+            <div class="flex gap-2">
+              <input v-model="isbn" type="text"  class="border p-2 w-4/5 rounded-lg" placeholder="例) 9781234567890" />
+              <button @click="fetchBookInfo" type="button" class="bg-blue-500 text-white w-1/5 py-2 md:px-8 rounded-lg text-center">
+                検索
+              </button>
+            </div>
+          </div>
+          <div class="mb-4">
             <label class="block text-sm font-medium">著者名</label>
             <input v-model="author" type="text" class="border p-2 w-full rounded-lg" />
           </div>
@@ -165,6 +174,7 @@ const websiteName = ref('')
 const updateDate = ref('')
 const url = ref('')
 const accessedDate = ref('')
+const isbn = ref('') // ISBNフィールドを追加
 
 // スタイル選択
 const citationStyle = ref('apa')
@@ -189,6 +199,53 @@ const formatCitation = () => {
     } else if (currentType.value === 'ウェブサイト') {
       formattedCitation.value = `${author.value} . “${webPageTitle.value}” . ${websiteName.value} . ${updateDate.value} . ${url.value} , (参照 ${accessedDate.value}) .`
     }
+  }
+}
+
+// ISBNにハイフンや数字以外の文字が含まれている場合は削除
+watch(isbn, (newVal) => {
+  isbn.value = newVal.replace(/[^0-9]/g, '');
+});
+
+// OpenBD APIを使用して図書情報を取得
+const fetchBookInfo = async () => {
+  if (!isbn.value) {
+    alert('ISBNを入力してください。')
+    return
+  }
+
+  try {
+    const response = await fetch(`https://api.openbd.jp/v1/get?isbn=${isbn.value}`)
+    const data = await response.json()
+
+    if (!data[0]) {
+      alert('該当する図書が見つかりませんでした。')
+      return
+    }
+
+    const book = data[0]
+    const onix = book.onix
+    const summary = book.summary
+
+    // 著者名
+    author.value = summary.author || (onix.DescriptiveDetail.Contributor
+      ? onix.DescriptiveDetail.Contributor.map(contributor => contributor.PersonName.content).join(', ')
+      : '')
+
+    // 書名
+    bookTitle.value = summary.title || onix.DescriptiveDetail.TitleDetail.TitleElement.TitleText.content || ''
+
+    // 出版社
+    publisher.value = summary.publisher || onix.PublishingDetail.Imprint.ImprintName || ''
+
+    // 出版年
+    year.value = summary.pubdate
+      ? summary.pubdate.slice(0, 4)
+      : (onix.PublishingDetail.PublishingDate[0]?.Date.slice(0, 4) || '')
+
+  } catch (error) {
+    console.error('図書情報の取得中にエラーが発生しました:', error)
+    alert('図書情報の取得に失敗しました。')
   }
 }
 </script>
